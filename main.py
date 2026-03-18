@@ -6,9 +6,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from preprocessing import preprocess
 from regression import run_regression_models
+from classification import run_classification_models
+from decision_tree import run_decision_tree_model, run_decision_tree_classifier
 
 # ──────────────────────────────────────────────
-# Paths  (update 'cars.csv' to your actual filename if different)
+# Paths
 # ──────────────────────────────────────────────
 BASE_DIR    = os.path.dirname(__file__)
 DATA_PATH   = os.path.join(BASE_DIR, 'data', 'pre-owned cars.csv')
@@ -20,29 +22,45 @@ def main():
     print("   SUPERVISED LEARNING PROJECT — PRE-OWNED CARS")
     print("=" * 55)
 
-    # ── STAGE 1: Preprocessing ──────────────────────────────
-    print("\n>>> STAGE 1: DATA PREPROCESSING")
-    X_train, X_test, y_train, y_test = preprocess(DATA_PATH)
+    # ════════════════════════════════════════════════════
+    # REGRESSION — Predict Car Price
+    # ════════════════════════════════════════════════════
+    print("\n>>> STAGE 1: DATA PREPROCESSING (target = price)")
+    X_train, X_test, y_train, y_test = preprocess(DATA_PATH, target='price')
 
-    # ── STAGE 2: Regression ─────────────────────────────────
-    print("\n>>> STAGE 2: MODEL TRAINING (LINEAR & KNN)")
-    trained_models = run_regression_models(
+    print("\n>>> STAGE 2: REGRESSION MODELS (Linear & KNN)")
+    run_regression_models(
         X_train, X_test, y_train, y_test,
         outputs_dir=OUTPUTS_DIR
     )
 
-    # ──────────────────────────────────────────────────────
-    # STAGE 3: Classification  (Predicting 'has_insurance')
-    # ──────────────────────────────────────────────────────
-    print("\n>>> STAGE 3: CLASSIFICATION MODEL (has_insurance)")
-    print("[SYSTEM] Re-running preprocessing to isolate 'has_insurance' target...")
-    X_train_clf, X_test_clf, y_train_clf, y_test_clf = preprocess(DATA_PATH, target='has_insurance')
-    
-    from classification import run_classification_models
-    clf_model = run_classification_models(
-        X_train_clf, X_test_clf, y_train_clf, y_test_clf,
+    print("\n>>> STAGE 3: DECISION TREE REGRESSION")
+    run_decision_tree_model(
+        X_train, X_test, y_train, y_test,
         outputs_dir=OUTPUTS_DIR
     )
+
+    # ════════════════════════════════════════════════════
+    # CLASSIFICATION — Predict Has Insurance
+    # ════════════════════════════════════════════════════
+    print("\n>>> STAGE 4: DATA PREPROCESSING (target = has_insurance)")
+    X_train_c, X_test_c, y_train_c, y_test_c = preprocess(DATA_PATH, target='has_insurance')
+
+    print("\n>>> STAGE 5: LOGISTIC REGRESSION (Classification)")
+    run_classification_models(
+        X_train_c, X_test_c, y_train_c, y_test_c,
+        outputs_dir=OUTPUTS_DIR
+    )
+
+    print("\n>>> STAGE 6: DECISION TREE CLASSIFICATION")
+    run_decision_tree_classifier(
+        X_train_c, X_test_c, y_train_c, y_test_c,
+        outputs_dir=OUTPUTS_DIR
+    )
+
+    # ── KNN Classification (to be added by teammate) ──
+    print("\n>>> STAGE 7: KNN CLASSIFICATION")
+    print("    [Pending] KNN Classifier will be added by teammate.")
 
     print("\n" + "=" * 55)
     print("   Run complete. All Stages Executed Successfully.")

@@ -63,10 +63,10 @@ def run_classification_models(X_train, X_test, y_train, y_test, outputs_dir='../
     joblib.dump(model, model_path)
     
     # Confusion Matrix Plot
-    # Ensure labels are [False, True] explicitly
-    cm = confusion_matrix(y_test, y_pred, labels=[False, True])
+    # Ensure labels are [0, 1] explicitly because LabelEncoder translates strings to ints
+    cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
     
-    # The standard sklearn cm outputs Cols: [Predicted False, Predicted True]
+    # The standard sklearn cm outputs Cols: [Predicted 0 (No), Predicted 1 (Yes)]
     # The user's image requests Cols: [Predicted Insurance, Predicted No Insurance]
     # We must swap the columns to match their diagram.
     custom_cm = np.array([
