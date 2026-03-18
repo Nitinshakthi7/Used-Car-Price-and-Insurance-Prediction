@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import joblib 
+import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 
@@ -24,24 +26,22 @@ def explore_data(df):
     print("="*50)
     print(f"Shape          : {df.shape}")
     print(f"\nColumn Names   :\n{df.columns.tolist()}")
-    print(f"\nFirst 5 Rows   :\n{df.head()}")
-    print(f"\nData Types     :\n{df.dtypes}")
-    print(f"\nMissing Values :\n{df.isnull().sum()}")
 
 
 # ──────────────────────────────────────────────
 # 3. Handle Missing Values
 # ──────────────────────────────────────────────
-def handle_missing_values(df):
+def handle_missing_values(df, target):
     """
-    - Drop rows where target (price) is missing.
+    - Drop rows where the target variable is missing.
     - Fill numeric columns with median.
     - Fill categorical columns with mode.
     """
-    print("\n[STEP] Handling missing values...")
+    print(f"\n[STEP] Handling missing values (Target: {target})...")
 
     # Drop rows with missing target
-    df = df.dropna(subset=['price'])
+    if target in df.columns:
+        df = df.dropna(subset=[target])
 
     # Numeric columns → fill with median
     numeric_cols = df.select_dtypes(include=[np.number]).columns
@@ -53,7 +53,6 @@ def handle_missing_values(df):
     for col in categorical_cols:
         df[col] = df[col].fillna(df[col].mode()[0])
 
-    print(f"[INFO] Missing values after handling:\n{df.isnull().sum()}")
     return df
 
 
@@ -62,7 +61,7 @@ def handle_missing_values(df):
 # ──────────────────────────────────────────────
 def drop_irrelevant_columns(df):
     """
-    Drop columns not useful for price prediction:
+    Drop columns not useful for prediction:
     - reg_year   : registration date (not meaningful as-is)
     - reg_number : vehicle ID / plate number
     - title      : full car title string (redundant)
@@ -74,19 +73,16 @@ def drop_irrelevant_columns(df):
     existing = [c for c in cols_to_drop if c in df.columns]
     df = df.drop(columns=existing, errors='ignore')
 
-    print(f"[INFO] Dropped columns: {existing if existing else 'None'}")
     return df
 
 
 # ──────────────────────────────────────────────
 # 5. Encode Categorical Variables
 # ──────────────────────────────────────────────
-def encode_categorical(df):
+def encode_categorical(df, outputs_dir='../outputs'):
     """
     Apply Label Encoding to all remaining object-type columns.
-    This handles: brand, model, fuel_type, transmission,
-                  ownership (e.g. '1st owner'), spare_key (Yes/No),
-                  has_insurance (TRUE/FALSE) if still present.
+    Saves the encoders if needed, or just encodes.
     """
     print("\n[STEP] Encoding categorical variables...")
 
@@ -97,7 +93,6 @@ def encode_categorical(df):
         df[col] = le.fit_transform(df[col].astype(str))
         print(f"  [ENCODED] {col}")
 
-    print("[INFO] Categorical encoding complete.")
     return df
 
 
@@ -107,44 +102,35 @@ def encode_categorical(df):
 def preprocess(filepath, target='price', test_size=0.2, random_state=42):
     """
     End-to-end preprocessing pipeline.
-
-    Parameters
-    ----------
-    filepath     : str   – path to the CSV dataset
-    target       : str   – column name of the regression target
-    test_size    : float – proportion of data held out for testing
-    random_state : int   – seed for reproducibility
-
-    Returns
-    -------
-    X_train, X_test, y_train, y_test
     """
     df = load_data(filepath)
     explore_data(df)
-    df = handle_missing_values(df)
+    df = handle_missing_values(df, target)
     df = drop_irrelevant_columns(df)
     df = encode_categorical(df)
 
     # ── Separate features and target ──
-    # Drop 'has_insurance' — that is the classification target (future stage)
     drop_cols = [target]
-    if 'has_insurance' in df.columns:
+    
+    # If we are doing Regression (`price`), drop the future Classification target
+    if target == 'price' and 'has_insurance' in df.columns:
         drop_cols.append('has_insurance')
+    
+    # If we are doing Classification (`has_insurance`), we KEEP `price` as a powerful feature!
 
     X = df.drop(columns=drop_cols)
     y = df[target]
 
-    print(f"\n[INFO] Features used     : {X.columns.tolist()}")
+    print(f"\n[INFO] Features used     : len({len(X.columns)})")
     print(f"[INFO] Target variable   : {target}")
-    print(f"[INFO] Feature matrix    : {X.shape}")
-
+    
     # ── Train-Test Split ──
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state
+        X, y, test_size=test_size, random_state=random_state, stratify=(y if target=='has_insurance' else None)
     )
 
-    print(f"\n[INFO] Training samples : {X_train.shape[0]}")
+    print(f"[INFO] Training samples : {X_train.shape[0]}")
     print(f"[INFO] Testing  samples : {X_test.shape[0]}")
-    print("\n[INFO] Preprocessing complete. Ready for model training.")
+    print("\n[INFO] Preprocessing complete.")
 
     return X_train, X_test, y_train, y_test

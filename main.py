@@ -32,14 +32,20 @@ def main():
     )
 
     # ──────────────────────────────────────────────────────
-    # STAGE 3: Classification  (classification.py — future)
+    # STAGE 3: Classification  (Predicting 'has_insurance')
     # ──────────────────────────────────────────────────────
-    print("\n>>> STAGE 3: CLASSIFICATION MODEL")
-    print("    [Future] classification.py will predict 'has_insurance'.")
-    print("    Planned : Logistic Regression / Decision Tree / KNN")
+    print("\n>>> STAGE 3: CLASSIFICATION MODEL (has_insurance)")
+    print("[SYSTEM] Re-running preprocessing to isolate 'has_insurance' target...")
+    X_train_clf, X_test_clf, y_train_clf, y_test_clf = preprocess(DATA_PATH, target='has_insurance')
+    
+    from classification import run_classification_models
+    clf_model = run_classification_models(
+        X_train_clf, X_test_clf, y_train_clf, y_test_clf,
+        outputs_dir=OUTPUTS_DIR
+    )
 
     print("\n" + "=" * 55)
-    print("   Run complete.")
+    print("   Run complete. All Stages Executed Successfully.")
     print(f"   Outputs saved to: {os.path.abspath(OUTPUTS_DIR)}")
     print("=" * 55)
 
