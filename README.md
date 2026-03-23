@@ -67,11 +67,11 @@ The pre-owned car market lacks pricing transparency and insurance visibility. Th
 
 ### Regression — Price Prediction
 
-| Model                     | R² Score      | MAE              |
-| ------------------------- | ------------- | ---------------- |
-| Linear Regression         | 0.68          | ~₹1.5 Lakhs      |
-| KNN Regression (k=5)      | 0.77          | ~₹1.05 Lakhs     |
-| **Decision Tree (Tuned)** | **0.8830** ⭐ | **~₹0.75 Lakhs** |
+| Model                     | R² Score      | MAE              | RMSE             |
+| ------------------------- | ------------- | ---------------- | ---------------- |
+| Linear Regression         | 0.68          | ~₹1.5 Lakhs      | ~₹2.1 Lakhs     |
+| KNN Regression (k=5)      | 0.77          | ~₹1.05 Lakhs     | ~₹1.6 Lakhs     |
+| **Decision Tree (Tuned)** | **0.8830** ⭐ | **~₹0.75 Lakhs** | **~₹1.2 Lakhs** |
 
 ### Classification — Insurance Prediction
 
