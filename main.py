@@ -8,6 +8,7 @@ from preprocessing import preprocess
 from regression import run_regression_models
 from classification import run_classification_models
 from decision_tree import run_decision_tree_model, run_decision_tree_classifier
+from knn_classifier import run_knn_classifier
 
 # ──────────────────────────────────────────────
 # Paths
@@ -58,9 +59,12 @@ def main():
         outputs_dir=OUTPUTS_DIR
     )
 
-    # ── KNN Classification (to be added by teammate) ──
+    # ── KNN Classification ──
     print("\n>>> STAGE 7: KNN CLASSIFICATION")
-    print("    [Pending] KNN Classifier will be added by teammate.")
+    run_knn_classifier(
+        X_train_c, X_test_c, y_train_c, y_test_c,
+        outputs_dir=OUTPUTS_DIR
+    )
 
     print("\n" + "=" * 55)
     print("   Run complete. All Stages Executed Successfully.")

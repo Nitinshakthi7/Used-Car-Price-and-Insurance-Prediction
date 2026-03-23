@@ -112,11 +112,14 @@ def preprocess(filepath, target='price', test_size=0.2, random_state=42):
     # ── Separate features and target ──
     drop_cols = [target]
     
-    # If we are doing Regression (`price`), drop the future Classification target
+    # If we are doing Regression (`price`), drop the Classification target
     if target == 'price' and 'has_insurance' in df.columns:
         drop_cols.append('has_insurance')
     
-    # If we are doing Classification (`has_insurance`), we KEEP `price` as a powerful feature!
+    # If we are doing Classification (`has_insurance`), drop `price`
+    # Insurance status does NOT depend on price — keeping it causes data leakage
+    if target == 'has_insurance' and 'price' in df.columns:
+        drop_cols.append('price')
 
     X = df.drop(columns=drop_cols)
     y = df[target]

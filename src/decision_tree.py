@@ -1,5 +1,7 @@
 import os
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')   # Must be set before importing pyplot — prevents Tkinter threading crash from GridSearchCV
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
@@ -121,9 +123,50 @@ def run_decision_tree_model(X_train, X_test, y_train, y_test, outputs_dir='../ou
     plt.savefig(plot_path, dpi=300)
     plt.close()
     print(f"[INFO] Regression plot saved → {plot_path}")
-    print("\n[INFO] Regression Decision Tree complete.")
 
+    # ── STEP 6: Feature Importance Analysis ───────────────────────
+    print("\n--- Feature Importance Analysis ---")
+    feature_names   = list(X_train.columns)
+    importances     = best_model.feature_importances_
+    
+    # Sort from highest to lowest importance
+    sorted_idx      = np.argsort(importances)
+    sorted_names    = [feature_names[i] for i in sorted_idx]
+    sorted_values   = importances[sorted_idx]
+
+    # Colour: top 3 features highlighted in orange, rest in steelblue
+    colours = ['#E67E22' if i >= len(sorted_idx) - 3 else '#2E86C1'
+               for i in range(len(sorted_idx))]
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    bars = ax.barh(sorted_names, sorted_values, color=colours, edgecolor='white', height=0.65)
+
+    # Add value labels on each bar
+    for bar, val in zip(bars, sorted_values):
+        ax.text(bar.get_width() + 0.003, bar.get_y() + bar.get_height() / 2,
+                f'{val:.3f}', va='center', fontsize=10, color='#2C3E50')
+
+    ax.set_xlabel('Importance Score', fontsize=12, fontweight='bold')
+    ax.set_title('Feature Importance Analysis\n(Decision Tree Regressor — Car Price)',
+                 fontsize=14, fontweight='bold', pad=15)
+    ax.set_xlim(0, max(importances) * 1.2)
+    sns.set_theme(style="whitegrid")
+    plt.tight_layout()
+
+    fi_path = os.path.join(outputs_dir, 'feature_importance.png')
+    plt.savefig(fi_path, dpi=300)
+    plt.close()
+    print(f"[INFO] Feature importance plot saved → {fi_path}")
+
+    # Print top 3 features to terminal
+    top3 = sorted(zip(feature_names, importances), key=lambda x: x[1], reverse=True)[:3]
+    print("\n  Top 3 Most Important Features for Car Price:")
+    for rank, (feat, score) in enumerate(top3, 1):
+        print(f"    {rank}. {feat:<30} → {score:.4f}")
+
+    print("\n[INFO] Regression Decision Tree complete.")
     return best_model
+
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -207,58 +250,34 @@ def run_decision_tree_classifier(X_train, X_test, y_train, y_test, outputs_dir='
     print(f"\n[INFO] Tuned classifier saved → {model_path}")
 
     # ── STEP 5: Confusion Matrix Plot ─────────────────────────────
-    cm = confusion_matrix(y_test, y_pred)
+    # labels=[0,1] → 0=No Insurance, 1=Has Insurance
+    cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
+
+    # Swap columns to match user's diagram:
+    # Cols: [Predicted Insurance, Predicted No Insurance]
+    # Rows: [Actual No Insurance, Actual Insurance]
+    custom_cm = np.array([
+        [cm[0, 1], cm[0, 0]],  # Row 0: Actual No Insurance
+        [cm[1, 1], cm[1, 0]]   # Row 1: Actual Insurance
+    ])
 
     fig, ax = plt.subplots(figsize=(7, 6))
-    disp = ConfusionMatrixDisplay(
-        confusion_matrix=cm,
-        display_labels=["No Insurance", "Has Insurance"]
-    )
-    disp.plot(
-        ax=ax,
-        cmap="Blues",
-        colorbar=False,
-        values_format='d'
-    )
+    sns.heatmap(custom_cm, annot=True, fmt='d', cmap='Blues', cbar=False,
+                annot_kws={"size": 16}, ax=ax)
     ax.set_title(
         f'Decision Tree (Tuned): Insurance Prediction\nAccuracy = {acc*100:.2f}%',
         fontsize=14, fontweight='bold', pad=15
     )
+    ax.set_xticklabels(['Predicted\nInsurance', 'Predicted No\nInsurance'],
+                       fontsize=12, fontweight='bold')
+    ax.set_yticklabels(['Actual No\nInsurance', 'Actual\nInsurance'],
+                       fontsize=12, fontweight='bold', va='center')
     plt.tight_layout()
 
     cm_path = os.path.join(outputs_dir, 'decision_tree_classifier_confusion_matrix.png')
     plt.savefig(cm_path, dpi=300)
     plt.close()
     print(f"[INFO] Confusion matrix plot saved → {cm_path}")
-
-    # ── STEP 6: Class Distribution Bar Plot ───────────────────────
-    labels  = ["No Insurance", "Has Insurance"]
-    actuals = [int((y_test == 0).sum()), int((y_test == 1).sum())]
-    preds   = [int((y_pred == 0).sum()), int((y_pred == 1).sum())]
-
-    x = np.arange(len(labels))
-    width = 0.35
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    bars1 = ax.bar(x - width/2, actuals, width, label='Actual',    color='#3498DB', alpha=0.85)
-    bars2 = ax.bar(x + width/2, preds,   width, label='Predicted', color='#1ABC9C', alpha=0.85)
-
-    ax.set_xlabel('Insurance Status', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Count',            fontsize=12, fontweight='bold')
-    ax.set_title('Decision Tree: Actual vs. Predicted Insurance Distribution',
-                 fontsize=13, fontweight='bold', pad=12)
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=11)
-    ax.legend(fontsize=10)
-    ax.bar_label(bars1, padding=3, fontsize=10)
-    ax.bar_label(bars2, padding=3, fontsize=10)
-    sns.set_theme(style="whitegrid")
-    plt.tight_layout()
-
-    dist_path = os.path.join(outputs_dir, 'decision_tree_classifier_distribution.png')
-    plt.savefig(dist_path, dpi=300)
-    plt.close()
-    print(f"[INFO] Distribution plot saved → {dist_path}")
 
     print("\n[INFO] Classification Decision Tree complete.")
     return best_model

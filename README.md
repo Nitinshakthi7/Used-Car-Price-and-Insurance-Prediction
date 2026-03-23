@@ -1,76 +1,128 @@
-# 🏎️ Supervised Learning Project — Pre-Owned Cars
+# 🏎️ Used Car Price & Insurance Prediction
 
-A comprehensive end-to-end Machine Learning pipeline analyzing the Indian pre-owned car market. This project implements advanced Data Preprocessing, Feature Scaling, Regression Modeling (Predicting Prices), and future Classification Modeling (Predicting Insurance Status) directly from raw CSV data.
+A complete end-to-end **Supervised Machine Learning** pipeline that predicts **pre-owned car prices** (Regression) and **insurance status** (Classification) using multiple algorithms on real-world Indian used car market data.
 
 ---
 
 ## 📑 Table of Contents
+
 1. [Project Objectives](#-project-objectives)
 2. [Dataset Information](#-dataset-information)
 3. [Machine Learning Models](#-machine-learning-models)
-4. [Project Structure](#-project-structure)
-5. [Installation & Setup](#-installation--setup)
-6. [How to Run the Pipeline](#-how-to-run-the-pipeline)
-7. [Understanding the Outputs](#-understanding-the-outputs)
-8. [Next Steps (Future Work)](#-next-steps-future-work)
+4. [Results Summary](#-results-summary)
+5. [Project Structure](#-project-structure)
+6. [Installation & Setup](#-installation--setup)
+7. [How to Run](#-how-to-run)
+8. [Understanding the Outputs](#-understanding-the-outputs)
+9. [Future Work](#-future-work)
 
 ---
 
 ## 🎯 Project Objectives
 
-In the used car market, pricing is notorious for lacking transparency. This project utilizes Supervised Machine Learning algorithms to identify mathematical patterns linking a car's physical/historical traits to its ultimate valuation.
-* **Stage 1 (Regression):** Predict the continuous `price` target variable using a baseline algorithm (Linear) and an improved distance-based algorithm (KNN).
-* **Stage 2 (Classification):** Accurately classify the boolean `has_insurance` target variable (Future Implementation).
+The pre-owned car market lacks pricing transparency and insurance visibility. This project applies **6 supervised learning models** to:
+
+- **Regression:** Predict the selling `price` of a used car using 3 different regression models.
+- **Classification:** Predict whether a vehicle `has_insurance` (Yes/No) using 3 different classification models.
 
 ---
 
 ## 📊 Dataset Information
-**File:** `data/pre-owned cars.csv`
-**Size:** ~2,800 Rows
-**Features (9):** `brand`, `model`, `make_year`, `fuel_type`, `transmission`, `engine_capacity(CC)`, `km_driven`, `ownership`, and `spare_key`.
 
-*Note: The `overall_cost` feature was intentionally dropped during preprocessing to prevent Target Leakage.*
+| Property                  | Value                        |
+| ------------------------- | ---------------------------- |
+| **File**                  | `data/pre-owned cars.csv`    |
+| **Total Records**         | 2,805                        |
+| **Total Columns**         | 15 (9 selected for modeling) |
+| **Regression Target**     | `price` (in ₹)               |
+| **Classification Target** | `has_insurance` (Yes / No)   |
+
+**Features used:** `brand`, `model`, `make_year`, `fuel_type`, `transmission`, `engine_capacity(CC)`, `km_driven`, `ownership`, `spare_key`
+
+> **Note:** `overall_cost`, `reg_year`, `reg_number`, and `title` were dropped during preprocessing to prevent data leakage and remove irrelevant information.
 
 ---
 
 ## 🧠 Machine Learning Models
 
-### 1. Linear Regression (The Baseline)
-A foundational statistical approach attempting to draw a "line of best fit" through the dataset. Because this dataset relies heavily on categorical strings (`brand`, `fuel_type`) encoded into integers, the linear equation struggles against the fake mathematical rankings, resulting in severe penalties and a negative $R^2$ score. 
+### 📈 Regression — Predicting Car Price
 
-### 2. K-Nearest Neighbours (KNN) Regression
-The successful model. Instead of relying on a straight-line equation, KNN Regression groups cars based on feature similarity in multi-dimensional space. By averaging the prices of the 5 most mathematically similar vehicles, KNN successfully bypassed the linearity issues and achieved a highly accurate **0.77 $R^2$ Score**.
+| #   | Model                       | Description                                              |
+| --- | --------------------------- | -------------------------------------------------------- |
+| 1   | **Linear Regression**       | Baseline model. Fits a straight line to the data         |
+| 2   | **KNN Regression (k=5)**    | Predicts price by averaging the 5 most similar cars      |
+| 3   | **Decision Tree Regressor** | Tree-based model with GridSearchCV hyperparameter tuning |
+
+### 🔵 Classification — Predicting Insurance Status
+
+| #   | Model                        | Description                                     |
+| --- | ---------------------------- | ----------------------------------------------- |
+| 1   | **Logistic Regression**      | Probabilistic classifier using sigmoid function |
+| 2   | **Decision Tree Classifier** | Tree-based classifier with GridSearchCV tuning  |
+| 3   | **KNN Classifier (k=5)**     | Majority voting from 5 nearest neighbors        |
+
+---
+
+## 📊 Results Summary
+
+### Regression — Price Prediction
+
+| Model                     | R² Score      | MAE              |
+| ------------------------- | ------------- | ---------------- |
+| Linear Regression         | 0.68          | ~₹1.5 Lakhs      |
+| KNN Regression (k=5)      | 0.77          | ~₹1.05 Lakhs     |
+| **Decision Tree (Tuned)** | **0.8830** ⭐ | **~₹0.75 Lakhs** |
+
+### Classification — Insurance Prediction
+
+| Model                   | Accuracy    |
+| ----------------------- | ----------- |
+| **Logistic Regression** | **~81%** ⭐ |
+| Decision Tree (Tuned)   | 80.04%      |
+| KNN Classifier          | ~78%        |
+
+### Key Finding
+
+**Engine capacity (43.1%) + Make year (39.0%) = 82%** of price prediction power (from Feature Importance Analysis).
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-Supervised Learning Project/
+Used-Car-Price-and-Insurance-Prediction/
 │
 ├── data/
-│   └── pre-owned cars.csv                # Raw dataset (Input)
+│   └── pre-owned cars.csv                          # Raw dataset (2,805 records)
 │
-├── docs/
-│   ├── pkl_files_explained.md            # What are models/scalers and why they are saved
-│   └── project_scope_and_interim.md      # Professor instructions and scope
-│
-├── outputs/                              # Automatically generated upon running
-│   ├── scaler.pkl                        # Trained feature scaler (StandardScaler)
-│   ├── linear_model.pkl                  # Trained baseline model
-│   ├── knn_model.pkl                     # Trained KNN model
-│   ├── linear_actual_vs_predicted.png    # Baseline regression scatter plot
-│   └── knn_actual_vs_predicted.png       # KNN regression scatter plot
+├── outputs/                                         # Auto-generated by main.py
+│   ├── scaler.pkl                                   # Scaler for Regression models
+│   ├── scaler_clf.pkl                               # Scaler for Classification models
+│   ├── linear_model.pkl                             # Trained Linear Regression
+│   ├── knn_model.pkl                                # Trained KNN Regression
+│   ├── decision_tree_regressor.pkl                  # Trained & tuned DT Regressor
+│   ├── logistic_model.pkl                           # Trained Logistic Regression
+│   ├── decision_tree_classifier.pkl                 # Trained & tuned DT Classifier
+│   ├── knn_classifier.pkl                           # Trained KNN Classifier
+│   ├── linear_actual_vs_predicted.png               # Linear Regression scatter plot
+│   ├── knn_actual_vs_predicted.png                  # KNN Regression scatter plot
+│   ├── decision_tree_regression_predicted.png       # Decision Tree Regression plot
+│   ├── feature_importance.png                       # Feature Importance bar chart
+│   ├── logistic_confusion_matrix.png                # Logistic Regression confusion matrix
+│   ├── decision_tree_classifier_confusion_matrix.png # DT Classifier confusion matrix
+│   └── knn_classifier_confusion_matrix.png          # KNN Classifier confusion matrix
 │
 ├── src/
-│   ├── preprocessing.py                  # Cleans data, drops NaNs, LabelEncodes categories
-│   ├── regression.py                     # Instantiates, trains, scales, and evaluates both models
-│   └── classification.py                 # (Future Implementation)
+│   ├── preprocessing.py      # Data cleaning, missing values, encoding, scaling
+│   ├── regression.py         # Linear Regression & KNN Regression
+│   ├── classification.py     # Logistic Regression Classifier
+│   ├── decision_tree.py      # Decision Tree (Regressor & Classifier with GridSearchCV)
+│   └── knn_classifier.py     # KNN Classifier
 │
-├── main.py                               # The Root Orchestrator
-├── presentation_content.md               # Script/notes for the Interim Presentation
-├── .gitignore                            # Prevents pushing cached python files to Git
-└── README.md                             # You are here
+├── main.py                   # Runs all 7 stages end-to-end
+├── requirements.py           # Run this first to install all dependencies
+├── .gitignore
+└── README.md                 # You are here
 ```
 
 ---
@@ -78,54 +130,57 @@ Supervised Learning Project/
 ## ⚙️ Installation & Setup
 
 1. **Clone the repository:**
-   Download or clone this project folder to your local machine.
-   
-2. **Install Python:**
-   Ensure you have Python 3.8+ installed on your system.
 
-3. **Install Required Libraries:**
-   Open your terminal/command prompt and run the following command to download the necessary data science libraries:
    ```bash
-   pip install pandas numpy scikit-learn matplotlib seaborn joblib
+   git clone https://github.com/your-username/Used-Car-Price-and-Insurance-Prediction.git
+   cd Used-Car-Price-and-Insurance-Prediction
    ```
+
+2. **Install dependencies:**
+   ```bash
+   python requirements.py
+   ```
+   This will automatically install: `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `seaborn`, `joblib`
 
 ---
 
-## 🚀 How to Run the Pipeline
+## 🚀 How to Run
 
-The entire machine learning flow is automated. You do not need to run the `src/` modules individually.
+```bash
+python main.py
+```
 
-1. Open your terminal.
-2. Navigate (`cd`) into the root `Supervised Learning Project/` directory.
-3. Run the main orchestrator script:
-   ```bash
-   python main.py
-   ```
+This runs all 7 stages:
 
-**What happens when you run `main.py`?**
-* **Step 1:** The script locates the raw CSV file in `data/`.
-* **Step 2:** It passes the data to `preprocessing.py` which cleans the NaNs, drops leaky columns, and label-encodes categorical data.
-* **Step 3:** The cleaned features are pushed to `regression.py` which splits it 80/20.
-* **Step 4:** Both Linear Regression and KNN are trained on the 80% split using `StandardScaler`.
-* **Step 5:** Terminal outputs the absolute metrics (MAE, RMSE, $R^2$).
-* **Step 6:** All massive `.pkl` models and high-resolution `.png` graphs are exported directly to the `outputs/` folder.
+| Stage | Description                                                 |
+| ----- | ----------------------------------------------------------- |
+| 1     | Preprocessing for Regression (target = `price`)             |
+| 2     | Linear Regression & KNN Regression                          |
+| 3     | Decision Tree Regression (GridSearchCV tuned)               |
+| 4     | Preprocessing for Classification (target = `has_insurance`) |
+| 5     | Logistic Regression Classification                          |
+| 6     | Decision Tree Classification (GridSearchCV tuned)           |
+| 7     | KNN Classification                                          |
+
+All trained models (`.pkl`), scalers, and plots (`.png`) are saved to the `outputs/` folder.
 
 ---
 
 ## 📈 Understanding the Outputs
 
-After running the script, open your terminal to view the MAE and $R^2$ results.
-Then, open your `outputs/` folder.
+**Regression Plots** (`*_actual_vs_predicted.png`):
 
-You will notice two `.png` files. 
-* Look at `linear_actual_vs_predicted.png` to see a visual representation of a model struggling (dots scattered vertically away from the red prediction line).
-* Look at `knn_actual_vs_predicted.png` to see the improvement. The dots cluster tightly along the diagonal red line, proving the model successfully learned to predict the vehicle prices based exclusively on neighboring similarities.
+- Each dot = one car from the test set
+- X-axis = actual price, Y-axis = predicted price
+- Red dashed line = perfect prediction (dots on this line = exact match)
+- Dots closer to the line = better model
 
----
+**Feature Importance** (`feature_importance.png`):
 
-## 🔜 Next Steps (Future Work)
+- Shows which car features matter most for price prediction
+- Top 2: engine_capacity (43.1%) and make_year (39.0%)
 
-1. **Implement `classification.py`:** Predict the boolean `has_insurance` variable using Logistic Regression and KNN classifiers.
-2. **Feature Importance Analysis:** Prove mathematically which columns impact the car price the most heavily.
-3. **Hyperparameter Tuning:** Fine-tune the $k$ value in the KNN model to increase the $R^2$ accuracy above 80%.
-4. **Decision Tree Regressors:** Introduce a third regression algorithm explicitly designed for categorical node-splitting.
+**Classification Confusion Matrices** (`*_confusion_matrix.png`):
+
+- 2×2 grid showing correct and incorrect predictions for each class
+- Diagonal values = correct predictions
